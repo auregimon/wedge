@@ -7,6 +7,12 @@
     { "name": "color/red/600",   "value": "#DC2626" },
     { "name": "color/green/600", "value": "#16A34A" },
     { "name": "color/danger",    "value": "{color.red.600}" },
-    { "name": "color/success",   "value": "{color.green.600}" }
+    { "name": "color/success",   "value": "{color.green.600}" },
+    { "name": "space/1", "value": "4px" },
+    { "name": "space/2", "value": "8px" },
+    { "name": "space/3", "value": "12px" },
+    { "name": "space/4", "value": "16px" },
+    { "name": "space/5", "value": "24px" },
+    { "name": "space/6", "value": "32px" }
   ]
 }

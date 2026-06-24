@@ -6,7 +6,10 @@
     "figma-export": "fixtures/tokens.figma.json",
     "figma-rest": "fixtures/tokens.figma-rest.json"
   },
-  "rules": { "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 } },
+  "rules": {
+    "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 },
+    "space-off-scale": { "severity": "advisory", "tolerance": 0.5 }
+  },
   "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "auto" },
   "brand": "brand.json",
   "htmlOut": "report.html",

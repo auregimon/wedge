@@ -16,7 +16,13 @@
       "VariableID:1:6": { "id": "VariableID:1:6", "name": "color/red/600", "resolvedType": "COLOR", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": { "r": 0.8627451, "g": 0.1490196, "b": 0.1490196, "a": 1 } } },
       "VariableID:1:7": { "id": "VariableID:1:7", "name": "color/green/600", "resolvedType": "COLOR", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": { "r": 0.0862745, "g": 0.6392157, "b": 0.2901961, "a": 1 } } },
       "VariableID:1:8": { "id": "VariableID:1:8", "name": "color/danger", "resolvedType": "COLOR", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": { "type": "VARIABLE_ALIAS", "id": "VariableID:1:6" } } },
-      "VariableID:1:9": { "id": "VariableID:1:9", "name": "color/success", "resolvedType": "COLOR", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": { "type": "VARIABLE_ALIAS", "id": "VariableID:1:7" } } }
+      "VariableID:1:9": { "id": "VariableID:1:9", "name": "color/success", "resolvedType": "COLOR", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": { "type": "VARIABLE_ALIAS", "id": "VariableID:1:7" } } },
+      "VariableID:1:10": { "id": "VariableID:1:10", "name": "space/1", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 4 } },
+      "VariableID:1:11": { "id": "VariableID:1:11", "name": "space/2", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 8 } },
+      "VariableID:1:12": { "id": "VariableID:1:12", "name": "space/3", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 12 } },
+      "VariableID:1:13": { "id": "VariableID:1:13", "name": "space/4", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 16 } },
+      "VariableID:1:14": { "id": "VariableID:1:14", "name": "space/5", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 24 } },
+      "VariableID:1:15": { "id": "VariableID:1:15", "name": "space/6", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 32 } }
     }
   }
 }

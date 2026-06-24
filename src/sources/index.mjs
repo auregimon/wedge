@@ -62,11 +62,12 @@ async function figmaRest({ file, fileKey, mode }) {
 
   const flat = {};
   for (const v of Object.values(vars)) {
-    if (v.resolvedType !== 'COLOR') continue;
+    if (v.resolvedType !== 'COLOR' && v.resolvedType !== 'FLOAT') continue;
     const coll = collections[v.variableCollectionId];
     const modeId = (mode && coll.modes.find(m => m.name === mode)?.modeId) || coll.defaultModeId;
     const val = v.valuesByMode[modeId];
     if (val && val.type === 'VARIABLE_ALIAS') flat[dotted(v.id)] = `{${dotted(val.id)}}`;
+    else if (v.resolvedType === 'FLOAT' && typeof val === 'number') flat[dotted(v.id)] = `${val}px`;
     else if (val) flat[dotted(v.id)] = toHex(val);
   }
   return flat;

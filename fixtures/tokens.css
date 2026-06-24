@@ -7,4 +7,10 @@
   --color-green-600: #16A34A;
   --color-danger: var(--color-red-600);
   --color-success: var(--color-green-600);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
 }

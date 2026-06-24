@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTokenSource } from '../src/sources/index.mjs';
-import { buildReverseIndex, literalInsteadOfToken } from '../src/engine.mjs';
+import { buildTokenModel, runFile } from '../src/engine.mjs';
 import { renderText } from '../src/report/text.mjs';
 import { renderHtml } from '../src/report/html.mjs';
 
@@ -24,18 +24,17 @@ const override = opt('--source');
 if (override) { ts.adapter = override; ts.file = config.tokenSourceFiles?.[override] ?? ts.file; }
 
 const flat = await loadTokenSource({ adapter: ts.adapter, ...ts, file: ts.file ? abs(ts.file) : undefined });
-const index = buildReverseIndex(flat);
-const tol = config.rules?.['literal-instead-of-token']?.tolerance ?? 6;
+const model = buildTokenModel(flat);
 const engine = opt('--engine') ?? config.scan.engine ?? 'auto';
 
 const scanFiles = opt('--file') ? [opt('--file')] : config.scan.include;
 const findings = [];
 for (const file of scanFiles) {
   const f = abs(file);
-  if (fs.existsSync(f)) findings.push(...literalInsteadOfToken(rel(f), fs.readFileSync(f, 'utf8'), index, tol, engine));
+  if (fs.existsSync(f)) findings.push(...runFile(rel(f), fs.readFileSync(f, 'utf8'), model, config.rules, engine));
 }
 
-const meta = { adapter: ts.adapter, tokens: index.length };
+const meta = { adapter: ts.adapter, tokens: model.colors.length + model.space.length };
 console.log(renderText(findings, brand, meta));
 
 const htmlOut = opt('--html') ?? config.htmlOut;

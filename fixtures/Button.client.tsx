@@ -2,8 +2,8 @@
 // Brand-neutral on purpose — Wedge knows nothing about this client.
 export function Button() {
   return (
-    <div style={{ background: "#FFFFFF", borderColor: "#2563EB" }}>
-      {/* exact matches -> color.paper, color.brand */}
+    <div style={{ background: "#FFFFFF", borderColor: "#2563EB", padding: 16, gap: 10 }}>
+      {/* colors: paper + brand fire; padding 16 on-scale (silent); gap 10 off-scale (fires) */}
 
       <h2 style={{ color: "#2663EB" }}>Heading</h2>
       {/* one channel off brand (#2563EB) -> should fire as drift */}

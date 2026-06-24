@@ -8,5 +8,13 @@
     "green":  { "600": { "$value": "#16A34A", "$type": "color" } },
     "danger":  { "$value": "{color.red.600}",   "$type": "color" },
     "success": { "$value": "{color.green.600}", "$type": "color" }
+  },
+  "space": {
+    "1": { "$value": "4px",  "$type": "dimension" },
+    "2": { "$value": "8px",  "$type": "dimension" },
+    "3": { "$value": "12px", "$type": "dimension" },
+    "4": { "$value": "16px", "$type": "dimension" },
+    "5": { "$value": "24px", "$type": "dimension" },
+    "6": { "$value": "32px", "$type": "dimension" }
   }
 }

@@ -1,12 +1,14 @@
 // HTML handoff report — the agency deliverable. Themed entirely by brand.json.
-// Deliberately avoids the AI-slop tells Wedge itself flags: no purple gradient,
-// no nested cards, no icon-tile stack, real type hierarchy, generous spacing.
+// Rule-agnostic: renders any finding via its display fields (swatches only when
+// a color is present). Deliberately avoids the AI-slop tells Wedge itself flags.
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const swatch = hex => hex ? `<span class="sw" style="background:${esc(hex)}"></span>` : '';
 
 export function renderHtml(findings, brand, meta) {
   const accent = brand.accentHex ?? '#2563EB';
   const files = new Set(findings.map(f => f.file)).size;
+  const tags = [...new Set(findings.map(f => f.tag))];
   const byFile = {};
   for (const f of findings) (byFile[f.file] ??= []).push(f);
 
@@ -14,19 +16,22 @@ export function renderHtml(findings, brand, meta) {
     <section class="file">
       <h3>${esc(file)} <span class="count">${fs_.length}</span></h3>
       <table>
-        <thead><tr><th>Line</th><th>Found</th><th></th><th>Token</th><th>Replace with</th></tr></thead>
+        <thead><tr><th>Line</th><th>Rule</th><th>Found</th><th></th><th>Token</th><th>Replace with</th></tr></thead>
         <tbody>
         ${fs_.map(f => `
           <tr>
             <td class="ln">${f.line}</td>
-            <td><span class="sw" style="background:${esc(f.literal)}"></span><code>${esc(f.literal)}</code></td>
-            <td class="arr">${f.exact ? '=' : '≈'}</td>
-            <td><span class="sw" style="background:${esc(f.tokenHex)}"></span><code>${esc(f.token)}</code>${f.exact ? '' : ' <span class="drift">drift</span>'}</td>
-            <td><code class="fix">${esc(f.suggestion)}</code></td>
+            <td><span class="tag tag-${esc(f.tag)}">${esc(f.tag)}</span></td>
+            <td>${swatch(f.foundColor)}<code>${esc(f.found)}</code></td>
+            <td class="arr">${esc(f.rel)}</td>
+            <td>${swatch(f.targetColor)}<code>${esc(f.target)}</code>${f.badge ? ` <span class="badge badge-${esc(f.badge)}">${esc(f.badge)}</span>` : ''}</td>
+            <td><code class="fix">${esc(f.fix)}</code></td>
           </tr>`).join('')}
         </tbody>
       </table>
     </section>`).join('');
+
+  const stat = (n, l) => `<div><div class="n">${n}</div><div class="l">${l}</div></div>`;
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -35,10 +40,9 @@ export function renderHtml(findings, brand, meta) {
   :root { --accent:${accent}; --ink:#16202B; --muted:#5B6B7A; --line:#E6EAEE; --bg:#FFFFFF; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
-    font:16px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; }
-  .wrap { max-width:860px; margin:0 auto; padding:64px 32px 96px; }
-  header { border-left:4px solid var(--accent); padding-left:20px; margin-bottom:8px; }
+    font:16px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:880px; margin:0 auto; padding:64px 32px 96px; }
+  header { border-left:4px solid var(--accent); padding-left:20px; }
   header .brand { font-weight:700; letter-spacing:-0.01em; font-size:15px; color:var(--accent); }
   h1 { font-size:34px; line-height:1.15; letter-spacing:-0.02em; margin:6px 0 4px; font-weight:680; }
   .sub { color:var(--muted); margin:0; max-width:60ch; }
@@ -47,38 +51,37 @@ export function renderHtml(findings, brand, meta) {
   .stat .n { font-size:40px; font-weight:700; letter-spacing:-0.02em; line-height:1; }
   .stat .l { color:var(--muted); font-size:13px; margin-top:6px; text-transform:uppercase; letter-spacing:0.04em; }
   section.file { margin-top:44px; }
-  h3 { font-size:14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600;
-    color:var(--ink); margin:0 0 12px; display:flex; align-items:center; gap:10px; }
-  h3 .count { background:var(--accent); color:#fff; font-family:inherit; font-size:11px;
-    border-radius:999px; padding:1px 9px; font-weight:700; }
+  h3 { font-size:14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; margin:0 0 12px; display:flex; align-items:center; gap:10px; }
+  h3 .count { background:var(--accent); color:#fff; font-size:11px; border-radius:999px; padding:1px 9px; font-weight:700; }
   table { width:100%; border-collapse:collapse; }
-  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
-    color:var(--muted); font-weight:600; padding:0 10px 8px; border-bottom:1px solid var(--line); }
+  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; padding:0 10px 8px; border-bottom:1px solid var(--line); }
   td { padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
-  td.ln { color:var(--muted); font-family:ui-monospace,monospace; font-size:13px; width:48px; }
-  td.arr { color:var(--muted); text-align:center; width:24px; }
+  td.ln { color:var(--muted); font-family:ui-monospace,monospace; font-size:13px; width:44px; }
+  td.arr { color:var(--muted); text-align:center; width:22px; }
   code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; }
   code.fix { color:var(--accent); font-weight:600; }
-  .sw { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:8px;
-    vertical-align:-2px; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12); }
-  .drift { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:#A85A00;
-    background:#FFF3E0; border-radius:4px; padding:1px 6px; margin-left:4px; }
+  .sw { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:8px; vertical-align:-2px; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12); }
+  .tag { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; padding:2px 7px; border-radius:4px; }
+  .tag-color { background:#EAF1FF; color:#1D4ED8; }
+  .tag-space { background:#EEF2F0; color:#3F6152; }
+  .badge { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; border-radius:4px; padding:1px 6px; margin-left:4px; }
+  .badge-drift { color:#A85A00; background:#FFF3E0; }
+  .badge-off-scale { color:#7A4FB5; background:#F2ECFB; }
   .pass { font-size:22px; font-weight:600; margin-top:40px; }
-  footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line);
-    color:var(--muted); font-size:13px; }
+  footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
 </style></head>
 <body><div class="wrap">
   <header>
     <div class="brand">${esc(brand.productName)}</div>
     <h1>${esc(brand.reportTitle ?? 'Conformance report')}</h1>
     <p class="sub">${esc(brand.subtitle ?? '')}</p>
-    <div class="meta">Token source: <code>${esc(meta.adapter)}</code> · ${meta.tokens} color tokens · generated for handoff</div>
+    <div class="meta">Token source: <code>${esc(meta.adapter)}</code> · ${meta.tokens} tokens · rules: ${esc(tags.join(', ') || '—')}</div>
   </header>
   ${findings.length ? `
   <div class="stat">
-    <div><div class="n">${findings.length}</div><div class="l">Token bypasses</div></div>
-    <div><div class="n">${files}</div><div class="l">File${files === 1 ? '' : 's'} affected</div></div>
-    <div><div class="n">${findings.filter(f => !f.exact).length}</div><div class="l">Drift (off-token)</div></div>
+    ${stat(findings.length, 'Findings')}
+    ${stat(files, `File${files === 1 ? '' : 's'} affected`)}
+    ${tags.map(t => stat(findings.filter(f => f.tag === t).length, t)).join('')}
   </div>
   ${groups}` : `<p class="pass">${esc(brand.passMessage ?? 'On system. ✓')}</p>`}
   <footer>${esc(brand.footer ?? '')}</footer>
