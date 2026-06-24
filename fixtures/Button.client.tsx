@@ -5,8 +5,8 @@ export function Button() {
     <div style={{ background: "#FFFFFF", borderColor: "#2563EB", padding: 16, gap: 10 }}>
       {/* colors: paper + brand fire; padding 16 on-scale (silent); gap 10 off-scale (fires) */}
 
-      <h2 style={{ color: "#2663EB" }}>Heading</h2>
-      {/* one channel off brand (#2563EB) -> should fire as drift */}
+      <h2 style={{ color: "#2663EB", fontSize: 18 }}>Heading</h2>
+      {/* color drift (#2563EB) + fontSize 18 off the type scale (nearest 16px) */}
 
       <p style={{ color: "var(--color-ink)" }}>Already tokenized — must NOT fire.</p>
 

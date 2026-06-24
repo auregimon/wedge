@@ -8,7 +8,8 @@
   },
   "rules": {
     "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 },
-    "space-off-scale": { "severity": "advisory", "tolerance": 0.5 }
+    "space-off-scale": { "severity": "advisory", "tolerance": 0.5 },
+    "type-off-scale": { "severity": "advisory", "tolerance": 0.5 }
   },
   "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "auto" },
   "brand": "brand.json",

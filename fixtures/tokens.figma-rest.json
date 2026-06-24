@@ -22,7 +22,13 @@
       "VariableID:1:12": { "id": "VariableID:1:12", "name": "space/3", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 12 } },
       "VariableID:1:13": { "id": "VariableID:1:13", "name": "space/4", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 16 } },
       "VariableID:1:14": { "id": "VariableID:1:14", "name": "space/5", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 24 } },
-      "VariableID:1:15": { "id": "VariableID:1:15", "name": "space/6", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 32 } }
+      "VariableID:1:15": { "id": "VariableID:1:15", "name": "space/6", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 32 } },
+      "VariableID:1:16": { "id": "VariableID:1:16", "name": "font/size/xs",  "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 12 } },
+      "VariableID:1:17": { "id": "VariableID:1:17", "name": "font/size/sm",  "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 14 } },
+      "VariableID:1:18": { "id": "VariableID:1:18", "name": "font/size/md",  "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 16 } },
+      "VariableID:1:19": { "id": "VariableID:1:19", "name": "font/size/lg",  "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 20 } },
+      "VariableID:1:20": { "id": "VariableID:1:20", "name": "font/size/xl",  "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 25 } },
+      "VariableID:1:21": { "id": "VariableID:1:21", "name": "font/size/xxl", "resolvedType": "FLOAT", "variableCollectionId": "VariableCollectionId:1:1", "valuesByMode": { "1:0": 31 } }
     }
   }
 }

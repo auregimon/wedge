@@ -61,7 +61,17 @@ objects, `styled`/`css` templates). Hexes in URLs, prose, Storybook titles,
 non-style attributes, and comments are structurally ignored. `--engine regex`
 forces the legacy whole-file pass (kept for comparison; it over-fires in TSX).
 
+## Rules
+
+| rule | flags | suggests |
+|---|---|---|
+| `literal-instead-of-token` | a hardcoded color that is (or drifts near) a token | the token `var()` |
+| `space-off-scale` | a `padding`/`margin`/`gap` value off the spacing scale | nearest `space.*` |
+| `type-off-scale` | a `font-size` off the type scale | nearest `font.size.*` |
+
+Scale tokens are read by path convention: `space.*` / `spacing.*` and `font.size.*`.
+
 ## Status
 
-Prototype. `literal-instead-of-token` rule only. Roadmap: `space-off-scale`,
-`type-off-scale`, `handrolled-component`; PR-comment + PDF report outputs.
+Prototype. Three rules above. Roadmap: `handrolled-component` (the deep moat —
+needs a component registry + AST), PR-comment + PDF report outputs.

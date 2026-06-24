@@ -16,5 +16,15 @@
     "4": { "$value": "16px", "$type": "dimension" },
     "5": { "$value": "24px", "$type": "dimension" },
     "6": { "$value": "32px", "$type": "dimension" }
+  },
+  "font": {
+    "size": {
+      "xs":  { "$value": "12px", "$type": "dimension" },
+      "sm":  { "$value": "14px", "$type": "dimension" },
+      "md":  { "$value": "16px", "$type": "dimension" },
+      "lg":  { "$value": "20px", "$type": "dimension" },
+      "xl":  { "$value": "25px", "$type": "dimension" },
+      "xxl": { "$value": "31px", "$type": "dimension" }
+    }
   }
 }

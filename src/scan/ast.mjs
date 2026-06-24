@@ -7,7 +7,7 @@
 //
 // Style contexts: JSX style/sx/css objects, and styled/css/createGlobalStyle templates.
 import { parse } from '@babel/parser';
-import { colorsIn, isSpacingProp, parseCssText } from './shared.mjs';
+import { colorsIn, isLengthProp, parseCssText } from './shared.mjs';
 
 const STYLE_ATTRS = new Set(['style', 'sx', 'css']);
 const CSS_TAGS = new Set(['css', 'createGlobalStyle', 'keyframes']);
@@ -40,13 +40,13 @@ function fromStyleObject(obj, out) {
     else if (v.type === 'TemplateLiteral' && v.expressions.length === 0 && v.quasis.length === 1)
       str = v.quasis[0].value.cooked ?? '';
     else if (v.type === 'NumericLiteral') {
-      if (isSpacingProp(prop)) out.push({ kind: 'length', raw: String(v.value), line: v.loc.start.line, prop });
+      if (isLengthProp(prop)) out.push({ kind: 'length', raw: String(v.value), line: v.loc.start.line, prop });
       continue;
     } else continue;
 
     const line = v.loc.start.line;
     for (const { raw } of colorsIn(str)) out.push({ kind: 'color', raw, line, prop });
-    if (isSpacingProp(prop)) for (const tok of str.trim().split(/\s+/)) out.push({ kind: 'length', raw: tok, line, prop });
+    if (isLengthProp(prop)) for (const tok of str.trim().split(/\s+/)) out.push({ kind: 'length', raw: tok, line, prop });
   }
 }
 

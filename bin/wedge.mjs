@@ -34,7 +34,7 @@ for (const file of scanFiles) {
   if (fs.existsSync(f)) findings.push(...runFile(rel(f), fs.readFileSync(f, 'utf8'), model, config.rules, engine));
 }
 
-const meta = { adapter: ts.adapter, tokens: model.colors.length + model.space.length };
+const meta = { adapter: ts.adapter, tokens: model.colors.length + model.space.length + model.type.length };
 console.log(renderText(findings, brand, meta));
 
 const htmlOut = opt('--html') ?? config.htmlOut;

@@ -6,9 +6,11 @@
 import { parseAnyColor, colorToHex } from './color.mjs';
 import { parseLengthPx } from './length.mjs';
 import { extractCandidates } from './scan/index.mjs';
+import { isSpacingProp, isFontSizeProp } from './scan/shared.mjs';
 
 export const DEFAULT_COLOR_TOLERANCE = 6;   // per-channel
 export const DEFAULT_SPACE_TOLERANCE = 0.5; // px
+export const DEFAULT_TYPE_TOLERANCE = 0.5;  // px
 
 function resolveAlias(value, flat, seen = new Set()) {
   const m = typeof value === 'string' && value.match(/^\{([^}]+)\}$/);
@@ -22,18 +24,33 @@ function resolveAlias(value, flat, seen = new Set()) {
 export function buildTokenModel(flat) {
   const colors = [];
   const space = [];
+  const type = [];
   for (const [path, raw] of Object.entries(flat)) {
     const resolved = resolveAlias(raw, flat);
     const rgb = parseAnyColor(resolved);
     if (rgb) { colors.push({ path, rgb, semantic: typeof raw === 'string' && raw.startsWith('{') }); continue; }
-    const seg0 = path.split('.')[0];
-    if (seg0 === 'space' || seg0 === 'spacing') {
+    const seg = path.split('.');
+    if (seg[0] === 'space' || seg[0] === 'spacing') {
       const px = parseLengthPx(resolved);
       if (px != null) space.push({ path, px });
+    } else if (seg[0] === 'font' && seg[1] === 'size') {
+      const px = parseLengthPx(resolved);
+      if (px != null) type.push({ path, px });
     }
   }
   space.sort((a, b) => a.px - b.px);
-  return { colors, space };
+  type.sort((a, b) => a.px - b.px);
+  return { colors, space, type };
+}
+
+// Shared off-scale check: nearest scale step, or null if on-scale / unparseable.
+function nearestOffScale(raw, scale, tol) {
+  const px = parseLengthPx(raw);
+  if (px == null || !scale.length) return null;
+  if (scale.some(s => Math.abs(s.px - px) <= tol)) return null;
+  let near = scale[0];
+  for (const s of scale) if (Math.abs(s.px - px) < Math.abs(near.px - px)) near = s;
+  return near;
 }
 
 const close = (a, b, t) => Math.abs(a.r - b.r) <= t && Math.abs(a.g - b.g) <= t && Math.abs(a.b - b.b) <= t;
@@ -68,31 +85,40 @@ function ruleLiteralInsteadOfToken(file, candidates, model, cfg) {
   return out;
 }
 
-// ── rule: space-off-scale (spacing) ──
-function ruleSpaceOffScale(file, candidates, model, cfg) {
-  if (!model.space.length) return [];
-  const tol = cfg.tolerance ?? DEFAULT_SPACE_TOLERANCE;
-  const out = [];
-  for (const c of candidates) {
-    if (c.kind !== 'length') continue;
-    const px = parseLengthPx(c.raw);
-    if (px == null) continue;
-    if (model.space.some(s => Math.abs(s.px - px) <= tol)) continue; // on scale
-    let near = model.space[0];
-    for (const s of model.space) if (Math.abs(s.px - px) < Math.abs(near.px - px)) near = s;
-    out.push({
-      rule: 'space-off-scale', severity: cfg.severity ?? 'advisory', file, line: c.line,
-      tag: 'space', found: `${c.raw}${/^\d*\.?\d+$/.test(c.raw) ? 'px' : ''}`, foundColor: null,
-      rel: '→', target: `${near.path} (${near.px}px)`, targetColor: null, badge: 'off-scale',
-      fix: cssVar(near.path), prop: c.prop, also: [],
-    });
-  }
-  return out;
+// Off-scale length rules (spacing, type) share one shape; they differ only in
+// which scale they check and which props they apply to.
+function offScaleRule({ rule, tag, scaleKey, propTest, defaultTol }) {
+  return (file, candidates, model, cfg) => {
+    const scale = model[scaleKey];
+    if (!scale.length) return [];
+    const tol = cfg.tolerance ?? defaultTol;
+    const out = [];
+    for (const c of candidates) {
+      if (c.kind !== 'length' || !propTest(c.prop)) continue;
+      const near = nearestOffScale(c.raw, scale, tol);
+      if (!near) continue;
+      out.push({
+        rule, severity: cfg.severity ?? 'advisory', file, line: c.line,
+        tag, found: `${c.raw}${/^\d*\.?\d+$/.test(c.raw) ? 'px' : ''}`, foundColor: null,
+        rel: '→', target: `${near.path} (${near.px}px)`, targetColor: null, badge: 'off-scale',
+        fix: cssVar(near.path), prop: c.prop, also: [],
+      });
+    }
+    return out;
+  };
 }
+
+const ruleSpaceOffScale = offScaleRule({
+  rule: 'space-off-scale', tag: 'space', scaleKey: 'space', propTest: isSpacingProp, defaultTol: DEFAULT_SPACE_TOLERANCE,
+});
+const ruleTypeOffScale = offScaleRule({
+  rule: 'type-off-scale', tag: 'type', scaleKey: 'type', propTest: isFontSizeProp, defaultTol: DEFAULT_TYPE_TOLERANCE,
+});
 
 const RULES = {
   'literal-instead-of-token': ruleLiteralInsteadOfToken,
   'space-off-scale': ruleSpaceOffScale,
+  'type-off-scale': ruleTypeOffScale,
 };
 
 export function runFile(file, src, model, rulesCfg = {}, engine = 'auto') {

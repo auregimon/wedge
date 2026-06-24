@@ -13,6 +13,12 @@
     { "name": "space/3", "value": "12px" },
     { "name": "space/4", "value": "16px" },
     { "name": "space/5", "value": "24px" },
-    { "name": "space/6", "value": "32px" }
+    { "name": "space/6", "value": "32px" },
+    { "name": "font/size/xs",  "value": "12px" },
+    { "name": "font/size/sm",  "value": "14px" },
+    { "name": "font/size/md",  "value": "16px" },
+    { "name": "font/size/lg",  "value": "20px" },
+    { "name": "font/size/xl",  "value": "25px" },
+    { "name": "font/size/xxl", "value": "31px" }
   ]
 }

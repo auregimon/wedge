@@ -64,6 +64,7 @@ export function renderHtml(findings, brand, meta) {
   .tag { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; padding:2px 7px; border-radius:4px; }
   .tag-color { background:#EAF1FF; color:#1D4ED8; }
   .tag-space { background:#EEF2F0; color:#3F6152; }
+  .tag-type { background:#F6EEF6; color:#8A3F7A; }
   .badge { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; border-radius:4px; padding:1px 6px; margin-left:4px; }
   .badge-drift { color:#A85A00; background:#FFF3E0; }
   .badge-off-scale { color:#7A4FB5; background:#F2ECFB; }
