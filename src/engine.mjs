@@ -3,8 +3,8 @@
 // and a file's source. No brand, no token, no source assumption lives here.
 
 import { parseAnyColor, colorToHex } from './color.mjs';
+import { extractCandidates } from './scan/index.mjs';
 
-const CSS_COLOR_RE = /#[0-9a-f]{3,8}\b|rgba?\([^)]+\)|oklch\([^)]+\)|hsla?\([^)]+\)/gi;
 export const DEFAULT_TOLERANCE = 6; // per-channel, matches impeccable's design-system scanner
 
 function resolveAlias(value, flat, seen = new Set()) {
@@ -35,37 +35,23 @@ function matchToken(rgb, index, tol) {
   return { best: hits[0], all: hits.map(h => h.path) };
 }
 
-// Interim precision pass: strip comments so prose-mentioned hexes don't fire.
-// The production fix is a static-HTML/AST scan; this closes the known comment FP.
-function stripComments(src) {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (_, p) => p);
-}
-
-export function literalInsteadOfToken(filePath, src, index, tol = DEFAULT_TOLERANCE) {
-  const lines = stripComments(src).split(/\r?\n/);
+export function literalInsteadOfToken(filePath, src, index, tol = DEFAULT_TOLERANCE, engine = 'auto') {
   const findings = [];
-  lines.forEach((line, i) => {
-    if (/(?:impeccable|wedge)-disable(?:-line)?\s+literal-instead-of-token/.test(line)) return;
-    let m; CSS_COLOR_RE.lastIndex = 0;
-    while ((m = CSS_COLOR_RE.exec(line))) {
-      const literal = m[0];
-      const rgb = parseAnyColor(literal);
-      if (!rgb || rgb.a === 0) continue;
-      const match = matchToken(rgb, index, tol);
-      if (!match) continue;
-      const exact = colorToHex(rgb).toLowerCase() === colorToHex(match.best.rgb).toLowerCase();
-      findings.push({
-        rule: 'literal-instead-of-token',
-        severity: 'advisory',
-        file: filePath, line: i + 1,
-        literal, token: match.best.path, exact,
-        tokenHex: colorToHex(match.best.rgb),
-        suggestion: `var(--${match.best.path.replace(/\./g, '-')})`,
-        also: match.all.slice(1),
-      });
-    }
-  });
-  return findings;
+  for (const { raw, line } of extractCandidates(filePath, src, engine)) {
+    const rgb = parseAnyColor(raw);
+    if (!rgb || rgb.a === 0) continue;
+    const match = matchToken(rgb, index, tol);
+    if (!match) continue;
+    const exact = colorToHex(rgb).toLowerCase() === colorToHex(match.best.rgb).toLowerCase();
+    findings.push({
+      rule: 'literal-instead-of-token',
+      severity: 'advisory',
+      file: filePath, line,
+      literal: raw, token: match.best.path, exact,
+      tokenHex: colorToHex(match.best.rgb),
+      suggestion: `var(--${match.best.path.replace(/\./g, '-')})`,
+      also: match.all.slice(1),
+    });
+  }
+  return findings.sort((a, b) => a.line - b.line);
 }

@@ -3,11 +3,18 @@
   "version": "0.1.0",
   "description": "Design-system conformance linter. Brand-free engine, bring-your-own token source.",
   "type": "module",
-  "bin": { "wedge": "bin/wedge.mjs" },
+  "bin": {
+    "wedge": "bin/wedge.mjs"
+  },
   "scripts": {
     "scan": "node bin/wedge.mjs",
     "parity": "for s in w3c css-vars figma-export figma-rest; do node bin/wedge.mjs --source $s; done"
   },
   "license": "Apache-2.0",
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.29.7"
+  }
 }

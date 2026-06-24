@@ -52,8 +52,16 @@ brand.json           THE REBRAND SURFACE
 wedge.config.json    per-client: source, rules, scan globs
 ```
 
+## Scan engines
+
+`scan.engine` (or `--engine`): `auto` (default) picks by file type — CSS-family
+files use a comment-stripped regex pass; JS/TS/JSX/TSX use an **AST scan**
+(`@babel/parser`) that only flags colors in real style contexts (`style`/`sx`/`css`
+objects, `styled`/`css` templates). Hexes in URLs, prose, Storybook titles,
+non-style attributes, and comments are structurally ignored. `--engine regex`
+forces the legacy whole-file pass (kept for comparison; it over-fires in TSX).
+
 ## Status
 
-Prototype. `literal-instead-of-token` rule only; `regex+strip` scan (production
-needs an AST scan — see engine.mjs). Roadmap: `space-off-scale`, `type-off-scale`,
-`handrolled-component`; PR-comment + PDF report outputs.
+Prototype. `literal-instead-of-token` rule only. Roadmap: `space-off-scale`,
+`type-off-scale`, `handrolled-component`; PR-comment + PDF report outputs.

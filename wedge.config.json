@@ -7,7 +7,7 @@
     "figma-rest": "fixtures/tokens.figma-rest.json"
   },
   "rules": { "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 } },
-  "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "regex+strip" },
+  "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "auto" },
   "brand": "brand.json",
   "htmlOut": "report.html",
   "failOnFindings": false

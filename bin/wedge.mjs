@@ -26,11 +26,13 @@ if (override) { ts.adapter = override; ts.file = config.tokenSourceFiles?.[overr
 const flat = await loadTokenSource({ adapter: ts.adapter, ...ts, file: ts.file ? abs(ts.file) : undefined });
 const index = buildReverseIndex(flat);
 const tol = config.rules?.['literal-instead-of-token']?.tolerance ?? 6;
+const engine = opt('--engine') ?? config.scan.engine ?? 'auto';
 
+const scanFiles = opt('--file') ? [opt('--file')] : config.scan.include;
 const findings = [];
-for (const file of config.scan.include) {
+for (const file of scanFiles) {
   const f = abs(file);
-  if (fs.existsSync(f)) findings.push(...literalInsteadOfToken(rel(f), fs.readFileSync(f, 'utf8'), index, tol));
+  if (fs.existsSync(f)) findings.push(...literalInsteadOfToken(rel(f), fs.readFileSync(f, 'utf8'), index, tol, engine));
 }
 
 const meta = { adapter: ts.adapter, tokens: index.length };
