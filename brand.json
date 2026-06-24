@@ -1,0 +1,9 @@
+{
+  "productName": "Studio North · DS Conformance",
+  "reportTitle": "Client handoff report",
+  "subtitle": "Hardcoded color values that already exist in the delivered design system. Replace these with tokens before sign-off so the system stays the single source of truth.",
+  "passMessage": "All colors map to tokens. Ready for handoff. ✓",
+  "footer": "Studio North — design system delivery · studionorth.example/ds",
+  "accentTerm": 75,
+  "accentHex": "#2563EB"
+}

@@ -1,0 +1,14 @@
+{
+  "tokenSource": { "adapter": "w3c", "file": "fixtures/tokens.w3c.json" },
+  "tokenSourceFiles": {
+    "w3c": "fixtures/tokens.w3c.json",
+    "css-vars": "fixtures/tokens.css",
+    "figma-export": "fixtures/tokens.figma.json",
+    "figma-rest": "fixtures/tokens.figma-rest.json"
+  },
+  "rules": { "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 } },
+  "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "regex+strip" },
+  "brand": "brand.json",
+  "htmlOut": "report.html",
+  "failOnFindings": false
+}

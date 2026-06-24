@@ -1,0 +1,10 @@
+Wedge
+Copyright 2026
+
+This product includes color-parsing code (src/color.mjs: parseAnyColor,
+oklchToRgb, colorToHex) vendored from the "impeccable" project by Paul Bakaus,
+licensed under the Apache License, Version 2.0.
+
+  https://github.com/pbakaus/impeccable
+
+The Wedge conformance engine, TokenSource adapters, and reports are original.

@@ -1,0 +1,12 @@
+{
+  "color": {
+    "brand":  { "$value": "#2563EB", "$type": "color" },
+    "ink":    { "$value": "#0F172A", "$type": "color" },
+    "paper":  { "$value": "#FFFFFF", "$type": "color" },
+    "slate":  { "500": { "$value": "#64748B", "$type": "color" } },
+    "red":    { "600": { "$value": "#DC2626", "$type": "color" } },
+    "green":  { "600": { "$value": "#16A34A", "$type": "color" } },
+    "danger":  { "$value": "{color.red.600}",   "$type": "color" },
+    "success": { "$value": "{color.green.600}", "$type": "color" }
+  }
+}
