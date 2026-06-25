@@ -94,6 +94,30 @@ makes a run exit non-zero when exceeded — a CI gate that ratchets drift down o
 This is the layer that turns a linter into a product: the data compounds (calibration,
 cross-tenant adoption baselines for a white-label platform).
 
+## CI
+
+Wedge posts a **sticky PR comment** (updated in place on re-runs) and exits
+non-zero when the drift budget is exceeded:
+
+```yaml
+# .github/workflows/wedge.yml
+name: wedge
+on: pull_request
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: node bin/wedge.mjs --comment ${{ github.event.pull_request.number }}
+        env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+```
+
+Locally: `node bin/wedge.mjs --format md` prints the comment body;
+`--comment <pr> --dry-run` shows what it would post without touching the PR.
+
 ## Status
 
 Prototype. Four rules above. Roadmap: PR-comment + PDF report outputs;
