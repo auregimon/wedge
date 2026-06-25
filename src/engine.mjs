@@ -156,8 +156,9 @@ const RULES = {
   'handrolled-component': ruleHandrolledComponent,
 };
 
-export function runFile(file, src, model, rulesCfg = {}, engine = 'auto') {
-  const candidates = extractCandidates(file, src, engine);
+export { extractCandidates };
+
+export function runRules(file, candidates, src, model, rulesCfg = {}) {
   const disabled = disabledMap(src);
   const findings = [];
   for (const [id, fn] of Object.entries(RULES)) {
@@ -168,4 +169,67 @@ export function runFile(file, src, model, rulesCfg = {}, engine = 'auto') {
     }
   }
   return findings.sort((a, b) => a.line - b.line || a.rule.localeCompare(b.rule));
+}
+
+export function runFile(file, src, model, rulesCfg = {}, engine = 'auto') {
+  return runRules(file, extractCandidates(file, src, engine), src, model, rulesCfg);
+}
+
+// ── code → design: propose-token ──
+// Aggregate, not per-file. Recurring values that the design system does NOT
+// already cover are candidates for NEW tokens — the loop that makes the system
+// better, not just the code conformant. The defensible direction.
+function hueName(rgb) {
+  const r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  if (d < 0.08) return 'gray';
+  let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h = Math.round(h * 60); if (h < 0) h += 360;
+  for (const [deg, name] of [[15, 'red'], [45, 'orange'], [70, 'yellow'], [160, 'green'],
+    [200, 'teal'], [255, 'blue'], [290, 'violet'], [330, 'magenta'], [360, 'red']]) if (h <= deg) return name;
+  return 'red';
+}
+
+function bracket(scale, px) {
+  let lo = null, hi = null;
+  for (const s of scale) { if (s.px < px && (!lo || s.px > lo.px)) lo = s; if (s.px > px && (!hi || s.px < hi.px)) hi = s; }
+  if (lo && hi) return `between ${lo.path} (${lo.px}px) and ${hi.path} (${hi.px}px)`;
+  if (hi) return `below ${hi.path} (${hi.px}px)`;
+  if (lo) return `above ${lo.path} (${lo.px}px)`;
+  return 'new scale step';
+}
+
+export function proposeTokens(candidates, model, cfg = {}) {
+  const minUses = cfg.minUses ?? 3;
+  const tol = cfg.colorTolerance ?? DEFAULT_COLOR_TOLERANCE;
+  const proposals = [];
+
+  // 1. Off-palette colors that recur (no existing token covers them).
+  const clusters = [];
+  for (const c of candidates) {
+    if (c.kind !== 'color') continue;
+    const rgb = parseAnyColor(c.raw);
+    if (!rgb || rgb.a === 0) continue;
+    if (matchColor(rgb, model.colors, tol)) continue; // enforcement already covers it
+    const cl = clusters.find(k => close(k.rgb, rgb, tol));
+    if (cl) cl.count++; else clusters.push({ rgb, hex: colorToHex(rgb), count: 1 });
+  }
+  for (const cl of clusters) if (cl.count >= minUses)
+    proposals.push({ kind: 'color', tag: 'propose', value: cl.hex, swatch: cl.hex, count: cl.count, suggest: `color.${hueName(cl.rgb)}`, note: 'not in palette' });
+
+  // 2. Off-scale lengths that recur → candidate scale steps (spacing, type).
+  for (const [scaleKey, propTest, prefix] of [['space', isSpacingProp, 'space'], ['type', isFontSizeProp, 'font.size']]) {
+    const scale = model[scaleKey];
+    if (!scale.length) continue;
+    const byPx = new Map();
+    for (const c of candidates) {
+      if (c.kind !== 'length' || !propTest(c.prop)) continue;
+      if (!nearestOffScale(c.raw, scale, DEFAULT_SPACE_TOLERANCE)) continue; // on-scale → not a proposal
+      const px = parseLengthPx(c.raw);
+      byPx.set(px, (byPx.get(px) || 0) + 1);
+    }
+    for (const [px, count] of byPx) if (count >= minUses)
+      proposals.push({ kind: scaleKey, tag: 'propose', value: `${px}px`, count, suggest: `${prefix}.* step`, note: bracket(scale, px) });
+  }
+  return proposals.sort((a, b) => b.count - a.count);
 }

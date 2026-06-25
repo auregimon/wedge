@@ -76,6 +76,14 @@ Scale tokens are read by path convention: `space.*` / `spacing.*` and `font.size
 Waivers are **rule-scoped**: `// wedge-disable-line space-off-scale` silences only
 that rule on that line; other rules still report.
 
+## Token proposals (code → design)
+
+The rules point design-system → code (*"use the token you have"*). `propose-token`
+points the other way: it aggregates **recurring values the system doesn't cover**
+across the whole scan and suggests new tokens — an off-palette color used 4×, a
+`20px` gap that recurs between two scale steps. Enabled via `"propose": { "minUses": 3 }`.
+This is the loop that makes the design system better, not just the code conformant.
+
 ## Status
 
 Prototype. Four rules above. Roadmap: PR-comment + PDF report outputs;

@@ -1,7 +1,7 @@
 // Terminal report — every human-facing string comes from brand.json.
 const dim = s => `\x1b[2m${s}\x1b[0m`, bold = s => `\x1b[1m${s}\x1b[0m`;
 
-export function renderText(findings, brand, meta) {
+export function renderText(findings, proposals, brand, meta) {
   const accent = s => `\x1b[38;5;${brand.accentTerm ?? 39}m${s}\x1b[0m`;
   const files = new Set(findings.map(f => f.file)).size;
   const out = ['', accent(`▍ ${brand.productName}`),
@@ -24,6 +24,14 @@ export function renderText(findings, brand, meta) {
       }
       out.push('');
     }
+  }
+  if (proposals?.length) {
+    out.push(accent(`  ↑ Proposed additions to the design system (${proposals.length})`));
+    out.push(dim('  Recurring values not covered by the system — candidates for new tokens.'), '');
+    for (const p of proposals) {
+      out.push(dim('    ') + `${p.tag.padEnd(7)} ${p.value.padEnd(16)} ×${String(p.count).padEnd(3)} add as ${p.suggest}  ` + dim(`(${p.note})`));
+    }
+    out.push('');
   }
   out.push(dim(`  ${brand.footer ?? ''}`), '');
   return out.join('\n');

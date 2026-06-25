@@ -5,7 +5,7 @@
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const swatch = hex => hex ? `<span class="sw" style="background:${esc(hex)}"></span>` : '';
 
-export function renderHtml(findings, brand, meta) {
+export function renderHtml(findings, proposals, brand, meta) {
   const accent = brand.accentHex ?? '#2563EB';
   const files = new Set(findings.map(f => f.file)).size;
   const tags = [...new Set(findings.map(f => f.tag))];
@@ -32,6 +32,25 @@ export function renderHtml(findings, brand, meta) {
     </section>`).join('');
 
   const stat = (n, l) => `<div><div class="n">${n}</div><div class="l">${l}</div></div>`;
+
+  const proposeSection = (proposals?.length) ? `
+    <section class="propose">
+      <h2>↑ Proposed additions to the design system <span class="pcount">${proposals.length}</span></h2>
+      <p class="psub">Recurring values the system doesn't cover yet — candidates for new tokens. This is the loop back from code to the design system.</p>
+      <table>
+        <thead><tr><th>Type</th><th>Value</th><th>Uses</th><th>Suggested token</th><th></th></tr></thead>
+        <tbody>
+        ${proposals.map(p => `
+          <tr>
+            <td><span class="tag tag-${esc(p.kind)}">${esc(p.kind)}</span></td>
+            <td>${swatch(p.swatch)}<code>${esc(p.value)}</code></td>
+            <td class="uses">×${p.count}</td>
+            <td><code class="fix">${esc(p.suggest)}</code></td>
+            <td class="pnote">${esc(p.note)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </section>` : '';
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -72,6 +91,12 @@ export function renderHtml(findings, brand, meta) {
   .badge-hand-rolled { color:#9A5B2B; background:#FBEFE4; }
   .badge-div-as-button { color:#9A5B2B; background:#FBEFE4; }
   .pass { font-size:22px; font-weight:600; margin-top:40px; }
+  section.propose { margin-top:56px; padding:28px 28px 8px; background:#F6FAF7; border:1px solid #DCEEE3; border-radius:12px; }
+  section.propose h2 { font-size:18px; letter-spacing:-0.01em; margin:0 0 4px; display:flex; align-items:center; gap:10px; }
+  section.propose .pcount { background:#2E7D55; color:#fff; font-size:12px; border-radius:999px; padding:1px 9px; font-weight:700; }
+  .psub { color:var(--muted); margin:0 0 18px; max-width:64ch; font-size:14px; }
+  td.uses { font-family:ui-monospace,monospace; color:var(--muted); font-size:13px; }
+  td.pnote { color:var(--muted); font-size:13px; }
   footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
 </style></head>
 <body><div class="wrap">
@@ -88,6 +113,7 @@ export function renderHtml(findings, brand, meta) {
     ${tags.map(t => stat(findings.filter(f => f.tag === t).length, t)).join('')}
   </div>
   ${groups}` : `<p class="pass">${esc(brand.passMessage ?? 'On system. ✓')}</p>`}
+  ${proposeSection}
   <footer>${esc(brand.footer ?? '')}</footer>
 </div></body></html>`;
 }

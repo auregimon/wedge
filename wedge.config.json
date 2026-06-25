@@ -18,7 +18,8 @@
       ]
     }
   },
-  "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "auto" },
+  "scan": { "include": ["fixtures/Button.client.tsx", "fixtures/Gallery.client.tsx"], "engine": "auto" },
+  "propose": { "minUses": 3 },
   "brand": "brand.json",
   "htmlOut": "report.html",
   "failOnFindings": false

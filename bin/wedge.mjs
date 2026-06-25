@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTokenSource } from '../src/sources/index.mjs';
-import { buildTokenModel, runFile } from '../src/engine.mjs';
+import { buildTokenModel, extractCandidates, runRules, proposeTokens } from '../src/engine.mjs';
 import { renderText } from '../src/report/text.mjs';
 import { renderHtml } from '../src/report/html.mjs';
 
@@ -29,18 +29,26 @@ const engine = opt('--engine') ?? config.scan.engine ?? 'auto';
 
 const scanFiles = opt('--file') ? [opt('--file')] : config.scan.include;
 const findings = [];
+const allCandidates = [];
 for (const file of scanFiles) {
   const f = abs(file);
-  if (fs.existsSync(f)) findings.push(...runFile(rel(f), fs.readFileSync(f, 'utf8'), model, config.rules, engine));
+  if (!fs.existsSync(f)) continue;
+  const src = fs.readFileSync(f, 'utf8');
+  const candidates = extractCandidates(rel(f), src, engine);
+  findings.push(...runRules(rel(f), candidates, src, model, config.rules));
+  allCandidates.push(...candidates);
 }
 
+// code → design: aggregate recurring off-system values into token proposals.
+const proposals = config.propose ? proposeTokens(allCandidates, model, config.propose) : [];
+
 const meta = { adapter: ts.adapter, tokens: model.colors.length + model.space.length + model.type.length };
-console.log(renderText(findings, brand, meta));
+console.log(renderText(findings, proposals, brand, meta));
 
 const htmlOut = opt('--html') ?? config.htmlOut;
 if (htmlOut) {
-  fs.writeFileSync(abs(htmlOut), renderHtml(findings, brand, meta));
+  fs.writeFileSync(abs(htmlOut), renderHtml(findings, proposals, brand, meta));
   console.log(`  HTML report → ${htmlOut}\n`);
 }
-if (argv.includes('--json')) console.log(JSON.stringify(findings, null, 2));
+if (argv.includes('--json')) console.log(JSON.stringify({ findings, proposals }, null, 2));
 process.exitCode = findings.length && config.failOnFindings ? 1 : 0;
