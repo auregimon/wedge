@@ -1,108 +1,92 @@
 # Wedge
 
-A deterministic **design-system conformance linter**. It flags hardcoded values
-in code that already exist as design tokens — *"you wrote `#2563EB`, that's
-`color.brand`, use `var(--color-brand)`."* — with drift tolerance and semantic
-alias resolution.
+**Design systems rot in code. Wedge stops the rot — and proves it on every pull request.**
 
-Brand-free engine, **bring-your-own token source**. White-label by design: the
-engine is the licensed core, `brand.json` is the rebrand surface.
+![License](https://img.shields.io/badge/license-Apache--2.0-blue) ![Node](https://img.shields.io/badge/node-%E2%89%A518-green) ![Status](https://img.shields.io/badge/status-v0.1%20prototype-orange)
 
-## Why this and not "good taste" linting
+Wedge is a deterministic **design-system conformance linter**. It catches the gap
+every team knows but no tool enforces: the drift between the design system you
+publish and the code that's supposed to use it — a hardcoded `#2563EB` where
+`color.brand` exists, a `10px` gap off the scale, a `<div onClick>` standing in
+for the real Button. It runs in CI, comments on the PR, and tracks adoption over
+time so drift is **visible and gateable**.
 
-Generic taste rules (no purple gradients, no Inter) get absorbed by better base
-models over time. **Your token graph cannot** — it's bespoke to each org. That's
-the defensible wedge, and why this ships as embeddable infrastructure a design
-consultancy or DS platform rebrands, not a single-brand SaaS.
+Brand-free engine, **bring-your-own token source** (Figma Variables, W3C tokens,
+CSS variables). White-label by design — the engine is the core, `brand.json` is
+the rebrand surface.
 
-## Run
+![Wedge handoff report](docs/assets/handoff-report.png)
+
+## The problem
+
+AI coding tools multiplied how much UI gets written, and most of it quietly
+bypasses the design system. The system rots **in the code** — in the gap between
+Figma and the repo that design-system platforms publish into but can't see.
+Generic "good taste" linting (no purple gradients, no Inter) gets absorbed by
+better base models. **Your token graph can't** — it's bespoke to each org. That's
+the defensible wedge.
+
+## What it does
+
+- **Four enforcement rules** — color token bypass (with drift tolerance + semantic
+  alias resolution), spacing scale, type scale, and hand-rolled components.
+- **Proposes new tokens** (code → design) — recurring values the system *doesn't*
+  cover become suggested additions. The loop that makes the system better.
+- **Drift budget** — adoption % tracked over time, a CI gate that ratchets drift
+  down, a sticky PR comment, and a themed HTML/PDF handoff report.
+- **AST-precise** — flags real style values only; hexes in URLs, prose, comments,
+  and non-style attributes are structurally ignored.
+
+![Drift budget](docs/assets/drift-budget.png)
+
+## The moat → the platform
+
+The CLI is the wedge. The defensible business is the **data that accumulates when
+you enforce at scale**: per-tenant drift history, cross-tenant adoption baselines,
+and a calibration corpus that lowers false-positives. None of it forks with the
+code. See **[docs/PLATFORM.md](docs/PLATFORM.md)** for the hosted architecture,
+open-core model, white-label/OEM strategy, and build phases.
+
+## Quickstart
 
 ```bash
-node bin/wedge.mjs                 # uses wedge.config.json (terminal report)
-node bin/wedge.mjs --source w3c    # override token source
+npm install
+node bin/wedge.mjs                 # terminal report
 node bin/wedge.mjs --pdf out.pdf   # themed handoff report as PDF
 node bin/wedge.mjs --format md     # GitHub-flavored markdown (PR comment body)
-npm run parity                     # same scan, all 4 sources -> identical findings
+node bin/wedge.mjs --comment <pr>  # post/update a sticky PR comment, gate on budget
+npm run parity                     # same scan, all 4 token sources -> identical findings
 ```
 
-PDF export prints the HTML report through a Chromium-family browser already on
-the machine (Chrome/Chromium/Edge/Brave, or `$WEDGE_CHROME`) — no bundled Chromium.
-
-## TokenSource adapters
+## Token sources (bring your own)
 
 | adapter | format |
 |---|---|
+| `figma-rest` | **live** Figma Variables REST API (`FIGMA_TOKEN`; Enterprise) |
 | `w3c` | W3C Design Tokens (`$value` tree) |
 | `css-vars` | CSS custom properties (`:root { --color-brand: … }`) |
 | `figma-export` | simple `{ name, value }` export |
-| `figma-rest` | **live** Figma Variables REST API (`/v1/files/:key/variables/local`) |
 
-### Live Figma
-
-```bash
-FIGMA_TOKEN=figd_… node bin/wedge.mjs --source figma-rest
-```
-Set `tokenSource.fileKey` in config. Requires the Figma Enterprise Variables
-REST API; without a token it reads the captured-shape fixture.
-
-## Architecture
-
-```
-bin/wedge.mjs        entry: config -> adapter -> engine -> report
-src/engine.mjs       LICENSED CORE (brand-free): reverse index, drift tolerance, alias resolution
-src/color.mjs        vendored color parsing (impeccable, Apache-2.0 — see NOTICE)
-src/sources/         TokenSource adapters (BYO)
-src/report/          text (CI) + html (handoff artifact), themed by brand.json
-brand.json           THE REBRAND SURFACE
-wedge.config.json    per-client: source, rules, scan globs
-```
-
-## Scan engines
-
-`scan.engine` (or `--engine`): `auto` (default) picks by file type — CSS-family
-files use a comment-stripped regex pass; JS/TS/JSX/TSX use an **AST scan**
-(`@babel/parser`) that only flags colors in real style contexts (`style`/`sx`/`css`
-objects, `styled`/`css` templates). Hexes in URLs, prose, Storybook titles,
-non-style attributes, and comments are structurally ignored. `--engine regex`
-forces the legacy whole-file pass (kept for comparison; it over-fires in TSX).
+The same scan over all four produces **identical findings** — the engine never
+knows where tokens came from.
 
 ## Rules
 
 | rule | flags | suggests |
 |---|---|---|
 | `literal-instead-of-token` | a hardcoded color that is (or drifts near) a token | the token `var()` |
-| `space-off-scale` | a `padding`/`margin`/`gap` value off the spacing scale | nearest `space.*` |
+| `space-off-scale` | a `padding`/`margin`/`gap` off the spacing scale | nearest `space.*` |
 | `type-off-scale` | a `font-size` off the type scale | nearest `font.size.*` |
-| `handrolled-component` | a raw `<button>` etc. with inline style, or a `<div onClick>` surrogate, when a DS component exists | the DS `<Component>` |
-
-Scale tokens are read by path convention: `space.*` / `spacing.*` and `font.size.*`.
-`handrolled-component` is driven by a `components` registry in its rule config.
+| `handrolled-component` | a raw `<button>` with inline style, or a `<div onClick>` surrogate, when a DS component exists | the DS `<Component>` |
+| `propose-token` *(code→design)* | recurring values the system doesn't cover | new tokens to add |
 
 Waivers are **rule-scoped**: `// wedge-disable-line space-off-scale` silences only
-that rule on that line; other rules still report.
-
-## Token proposals (code → design)
-
-The rules point design-system → code (*"use the token you have"*). `propose-token`
-points the other way: it aggregates **recurring values the system doesn't cover**
-across the whole scan and suggests new tokens — an off-palette color used 4×, a
-`20px` gap that recurs between two scale steps. Enabled via `"propose": { "minUses": 3 }`.
-This is the loop that makes the design system better, not just the code conformant.
-
-## Drift budget (persistence)
-
-With `"history": { "file": ".wedge/history.json" }`, each run is recorded — findings
-by rule, proposals, and a **token-adoption %** (of the style decisions Wedge can see,
-the fraction that honor the system). The report then shows adoption, the delta and a
-sparkline since the last run, and a budget status. `"budget": { "maxFindings": 10 }`
-makes a run exit non-zero when exceeded — a CI gate that ratchets drift down over time.
-This is the layer that turns a linter into a product: the data compounds (calibration,
-cross-tenant adoption baselines for a white-label platform).
+that rule on that line.
 
 ## CI
 
-Wedge posts a **sticky PR comment** (updated in place on re-runs) and exits
-non-zero when the drift budget is exceeded:
+Wedge posts a sticky PR comment (updated in place) and exits non-zero when the
+drift budget is exceeded:
 
 ```yaml
 # .github/workflows/wedge.yml
@@ -120,10 +104,31 @@ jobs:
         env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
 ```
 
-Locally: `node bin/wedge.mjs --format md` prints the comment body;
-`--comment <pr> --dry-run` shows what it would post without touching the PR.
+## Architecture
+
+```
+bin/wedge.mjs        entry: config -> token source -> engine -> reports
+src/engine.mjs       brand-free core: rules, token model, adoption stats, proposals
+src/scan/            AST + CSS scanners (candidates: color, length, element, tokenref)
+src/sources/         TokenSource adapters (Figma / W3C / CSS vars)
+src/history.mjs      drift-budget ledger (local JSON → managed store on the platform)
+src/report/          text · html · markdown, themed by brand.json
+src/pdf.mjs          HTML → PDF via the machine's Chromium (no bundled browser)
+src/post/github.mjs  sticky PR-comment poster
+brand.json           the rebrand surface  ·  wedge.config.json  per-project config
+```
+
+Only runtime dependency: `@babel/parser`. PDF export uses a Chromium-family
+browser already on the machine (Chrome/Chromium/Edge/Brave or `$WEDGE_CHROME`).
 
 ## Status
 
-Prototype. Four rules above. Roadmap: PR-comment + PDF report outputs;
-`$type:dimension` detection; data-flow tracing for out-of-line style objects.
+**v0.1 — working prototype, all output surfaces shipped** (terminal, PR comment +
+CI gate, HTML + PDF handoff). Phase 0 of [the platform roadmap](docs/PLATFORM.md).
+Open gaps: `$type:dimension` detection, data-flow tracing for out-of-line style
+objects, component adoption in the % metric.
+
+## License
+
+Apache-2.0. Color-parsing in `src/color.mjs` is vendored from
+[impeccable](https://github.com/pbakaus/impeccable) (Apache-2.0) — see `NOTICE`.
