@@ -31,6 +31,15 @@ export function colorsIn(text) {
   return out;
 }
 
+// Token references — var(--name) — counted as on-system usage (the denominator).
+export function varsIn(text) {
+  const out = [];
+  const re = /var\(\s*--([a-z0-9-]+)\s*\)/gi;
+  let m;
+  while ((m = re.exec(text))) out.push({ raw: `--${m[1]}`, index: m.index });
+  return out;
+}
+
 // Parse CSS declaration text into typed candidates. Used for .css files and the
 // static quasis of styled/css templates. `lineOffset` maps local lines to file lines.
 export function parseCssText(text, lineOffset = 0) {
@@ -41,7 +50,8 @@ export function parseCssText(text, lineOffset = 0) {
     const prop = m[1], value = m[2];
     const line = text.slice(0, m.index).split('\n').length + lineOffset;
     for (const { raw } of colorsIn(value)) out.push({ kind: 'color', raw, line, prop });
-    if (isLengthProp(prop)) {
+    for (const { raw } of varsIn(value)) out.push({ kind: 'tokenref', raw, line, prop });
+    if (isLengthProp(prop) && !/var\(/.test(value)) {
       for (const tok of value.trim().split(/\s+/)) out.push({ kind: 'length', raw: tok, line, prop });
     }
   }

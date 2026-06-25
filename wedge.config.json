@@ -20,6 +20,8 @@
   },
   "scan": { "include": ["fixtures/Button.client.tsx", "fixtures/Gallery.client.tsx"], "engine": "auto" },
   "propose": { "minUses": 3 },
+  "history": { "file": ".wedge/history.json" },
+  "budget": { "maxFindings": 10 },
   "brand": "brand.json",
   "htmlOut": "report.html",
   "failOnFindings": false

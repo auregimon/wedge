@@ -5,10 +5,21 @@
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const swatch = hex => hex ? `<span class="sw" style="background:${esc(hex)}"></span>` : '';
 
-export function renderHtml(findings, proposals, brand, meta) {
+export function renderHtml(findings, proposals, summary, brand, meta) {
   const accent = brand.accentHex ?? '#2563EB';
   const files = new Set(findings.map(f => f.file)).size;
   const tags = [...new Set(findings.map(f => f.tag))];
+
+  const driftBanner = summary ? `
+    <div class="drift">
+      <div class="adopt">
+        <div class="big">${(summary.adoption * 100).toFixed(0)}%${summary.adoptionDelta != null
+          ? `<span class="d ${summary.adoptionDelta >= 0 ? 'up' : 'dn'}">${summary.adoptionDelta >= 0 ? '▲' : '▼'}${Math.abs(summary.adoptionDelta * 100).toFixed(0)} pts</span>` : ''}</div>
+        <div class="cap">Token adoption · ${summary.examined} style values examined</div>
+      </div>
+      ${summary.delta != null ? `<div class="drift-item"><div class="spark">${esc(summary.trend || '')}</div><div class="cap">Findings ${summary.findingsTotal} · ${summary.delta <= 0 ? '▼' : '▲'}${Math.abs(summary.delta)} since ${esc(new Date(summary.prev.ts).toISOString().slice(0, 10))}</div></div>` : ''}
+      ${summary.budget ? `<div class="drift-item"><div class="budge ${summary.budget.ok ? 'ok' : 'over'}">${summary.budget.value} / ${summary.budget.max}</div><div class="cap">Drift budget · ${summary.budget.ok ? 'within' : 'OVER'}</div></div>` : ''}
+    </div>` : '';
   const byFile = {};
   for (const f of findings) (byFile[f.file] ??= []).push(f);
 
@@ -66,6 +77,14 @@ export function renderHtml(findings, proposals, brand, meta) {
   h1 { font-size:34px; line-height:1.15; letter-spacing:-0.02em; margin:6px 0 4px; font-weight:680; }
   .sub { color:var(--muted); margin:0; max-width:60ch; }
   .meta { color:var(--muted); font-size:13px; margin-top:14px; }
+  .drift { display:flex; gap:48px; align-items:flex-end; margin:36px 0 0; padding:20px 24px; background:#F7F9FB; border:1px solid var(--line); border-radius:12px; }
+  .drift .big { font-size:38px; font-weight:700; letter-spacing:-0.02em; line-height:1; display:flex; align-items:baseline; gap:10px; }
+  .drift .d { font-size:13px; font-weight:700; }
+  .drift .d.up { color:#2E7D55; } .drift .d.dn { color:#B23B3B; }
+  .drift .cap { color:var(--muted); font-size:12px; margin-top:8px; text-transform:uppercase; letter-spacing:0.04em; }
+  .drift .spark { font-family:ui-monospace,monospace; font-size:26px; line-height:1; color:var(--accent); letter-spacing:1px; }
+  .drift .budge { font-size:26px; font-weight:700; font-family:ui-monospace,monospace; }
+  .drift .budge.ok { color:#2E7D55; } .drift .budge.over { color:#B23B3B; }
   .stat { display:flex; gap:40px; margin:40px 0 8px; padding:24px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
   .stat .n { font-size:40px; font-weight:700; letter-spacing:-0.02em; line-height:1; }
   .stat .l { color:var(--muted); font-size:13px; margin-top:6px; text-transform:uppercase; letter-spacing:0.04em; }
@@ -106,6 +125,7 @@ export function renderHtml(findings, proposals, brand, meta) {
     <p class="sub">${esc(brand.subtitle ?? '')}</p>
     <div class="meta">Token source: <code>${esc(meta.adapter)}</code> · ${meta.tokens} tokens · rules: ${esc(tags.join(', ') || '—')}</div>
   </header>
+  ${driftBanner}
   ${findings.length ? `
   <div class="stat">
     ${stat(findings.length, 'Findings')}

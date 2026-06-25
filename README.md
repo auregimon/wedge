@@ -84,6 +84,16 @@ across the whole scan and suggests new tokens — an off-palette color used 4×,
 `20px` gap that recurs between two scale steps. Enabled via `"propose": { "minUses": 3 }`.
 This is the loop that makes the design system better, not just the code conformant.
 
+## Drift budget (persistence)
+
+With `"history": { "file": ".wedge/history.json" }`, each run is recorded — findings
+by rule, proposals, and a **token-adoption %** (of the style decisions Wedge can see,
+the fraction that honor the system). The report then shows adoption, the delta and a
+sparkline since the last run, and a budget status. `"budget": { "maxFindings": 10 }`
+makes a run exit non-zero when exceeded — a CI gate that ratchets drift down over time.
+This is the layer that turns a linter into a product: the data compounds (calibration,
+cross-tenant adoption baselines for a white-label platform).
+
 ## Status
 
 Prototype. Four rules above. Roadmap: PR-comment + PDF report outputs;

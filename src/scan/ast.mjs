@@ -7,7 +7,7 @@
 //
 // Style contexts: JSX style/sx/css objects, and styled/css/createGlobalStyle templates.
 import { parse } from '@babel/parser';
-import { colorsIn, isLengthProp, parseCssText } from './shared.mjs';
+import { colorsIn, varsIn, isLengthProp, parseCssText } from './shared.mjs';
 
 const STYLE_ATTRS = new Set(['style', 'sx', 'css']);
 const CSS_TAGS = new Set(['css', 'createGlobalStyle', 'keyframes']);
@@ -46,7 +46,8 @@ function fromStyleObject(obj, out) {
 
     const line = v.loc.start.line;
     for (const { raw } of colorsIn(str)) out.push({ kind: 'color', raw, line, prop });
-    if (isLengthProp(prop)) for (const tok of str.trim().split(/\s+/)) out.push({ kind: 'length', raw: tok, line, prop });
+    for (const { raw } of varsIn(str)) out.push({ kind: 'tokenref', raw, line, prop });
+    if (isLengthProp(prop) && !/var\(/.test(str)) for (const tok of str.trim().split(/\s+/)) out.push({ kind: 'length', raw: tok, line, prop });
   }
 }
 

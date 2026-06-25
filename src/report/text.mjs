@@ -1,11 +1,28 @@
 // Terminal report — every human-facing string comes from brand.json.
 const dim = s => `\x1b[2m${s}\x1b[0m`, bold = s => `\x1b[1m${s}\x1b[0m`;
 
-export function renderText(findings, proposals, brand, meta) {
+export function renderText(findings, proposals, summary, brand, meta) {
   const accent = s => `\x1b[38;5;${brand.accentTerm ?? 39}m${s}\x1b[0m`;
   const files = new Set(findings.map(f => f.file)).size;
   const out = ['', accent(`▍ ${brand.productName}`),
     dim(`  ${brand.reportTitle ?? 'conformance report'} · source: ${meta.adapter}`), ''];
+
+  if (summary) {
+    const pct = (summary.adoption * 100).toFixed(0);
+    const aDelta = summary.adoptionDelta != null
+      ? ` (${summary.adoptionDelta >= 0 ? '▲' : '▼'}${Math.abs(summary.adoptionDelta * 100).toFixed(0)} pts)` : '';
+    out.push(bold(`  Token adoption ${pct}%`) + dim(aDelta) + dim(`   ${summary.examined} style values examined`));
+    if (summary.delta != null) {
+      const since = summary.prev ? new Date(summary.prev.ts).toISOString().slice(0, 10) : '';
+      const arrow = summary.delta <= 0 ? '▼' : '▲';
+      out.push(dim(`  Drift  ${summary.findingsTotal} findings  ${arrow}${Math.abs(summary.delta)} since ${since}  ${summary.trend}`));
+    }
+    if (summary.budget) {
+      const tag = summary.budget.ok ? '✓ within budget' : '✗ OVER BUDGET';
+      out.push((summary.budget.ok ? dim : accent)(`  Budget ${summary.budget.value}/${summary.budget.max}  ${tag}`));
+    }
+    out.push('');
+  }
 
   if (!findings.length) {
     out.push('  ' + (brand.passMessage ?? 'On system. ✓'));

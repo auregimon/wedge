@@ -199,6 +199,32 @@ function bracket(scale, px) {
   return 'new scale step';
 }
 
+// ── adoption: of the style decisions we can see, what fraction honors the system ──
+function categorizeRef(raw) {
+  const n = raw.replace(/^--/, '').toLowerCase();
+  if (n.startsWith('color')) return 'color';
+  if (n.startsWith('font-size') || n.startsWith('fontsize')) return 'type';
+  if (n.startsWith('space') || n.startsWith('spacing')) return 'space';
+  return null;
+}
+
+export function computeStats(candidates, model) {
+  const on = { color: 0, space: 0, type: 0 };
+  const off = { color: 0, space: 0, type: 0 };
+  for (const c of candidates) {
+    if (c.kind === 'color') off.color++;
+    else if (c.kind === 'tokenref') { const k = categorizeRef(c.raw); if (k) on[k]++; }
+    else if (c.kind === 'length') {
+      const k = isSpacingProp(c.prop) ? 'space' : isFontSizeProp(c.prop) ? 'type' : null;
+      if (!k) continue;
+      if (nearestOffScale(c.raw, model[k], DEFAULT_SPACE_TOLERANCE)) off[k]++; else on[k]++;
+    }
+  }
+  const onTot = on.color + on.space + on.type;
+  const offTot = off.color + off.space + off.type;
+  return { on, off, onTot, offTot, examined: onTot + offTot, adoption: (onTot + offTot) ? onTot / (onTot + offTot) : 1 };
+}
+
 export function proposeTokens(candidates, model, cfg = {}) {
   const minUses = cfg.minUses ?? 3;
   const tol = cfg.colorTolerance ?? DEFAULT_COLOR_TOLERANCE;
