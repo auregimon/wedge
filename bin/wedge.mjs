@@ -12,6 +12,7 @@ import { renderText } from '../src/report/text.mjs';
 import { renderHtml } from '../src/report/html.mjs';
 import { renderMarkdown, MARKER } from '../src/report/markdown.mjs';
 import { detectRepo, postSticky } from '../src/post/github.mjs';
+import { htmlToPdf } from '../src/pdf.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const abs = p => path.resolve(ROOT, p);
@@ -95,7 +96,21 @@ if (prNum) {
 const htmlOut = opt('--html') ?? config.htmlOut;
 if (htmlOut && !mdMode) {
   fs.writeFileSync(abs(htmlOut), renderHtml(findings, proposals, summary, brand, meta));
-  console.log(`  HTML report → ${htmlOut}\n`);
+  console.log(`  HTML report → ${htmlOut}`);
 }
+
+const pdfOut = opt('--pdf') ?? config.pdfOut;
+if (pdfOut) {
+  // Need the HTML on disk to print; reuse htmlOut if present, else a temp file.
+  const htmlPath = htmlOut ? abs(htmlOut) : path.join(os.tmpdir(), 'wedge-report.html');
+  if (!htmlOut || mdMode) fs.writeFileSync(htmlPath, renderHtml(findings, proposals, summary, brand, meta));
+  try {
+    const { chrome } = htmlToPdf(htmlPath, abs(pdfOut));
+    console.log(`  PDF report  → ${pdfOut}  (via ${path.basename(chrome)})`);
+  } catch (err) {
+    console.error(`  wedge: PDF export failed — ${err.message}`);
+  }
+}
+console.log('');
 if (argv.includes('--json')) console.log(JSON.stringify({ findings, proposals, summary }, null, 2));
 process.exitCode = (summary.budget && !summary.budget.ok) || (findings.length && config.failOnFindings) ? 1 : 0;

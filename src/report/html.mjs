@@ -117,6 +117,13 @@ export function renderHtml(findings, proposals, summary, brand, meta) {
   td.uses { font-family:ui-monospace,monospace; color:var(--muted); font-size:13px; }
   td.pnote { color:var(--muted); font-size:13px; }
   footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+  @page { margin:16mm; }
+  @media print {
+    .wrap { padding:0; max-width:none; }
+    tr, .drift, section.propose { break-inside:avoid; }
+    section.file, h3 { break-inside:avoid; }
+    a { color:inherit; text-decoration:none; }
+  }
 </style></head>
 <body><div class="wrap">
   <header>

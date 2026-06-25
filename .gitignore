@@ -1,5 +1,6 @@
 node_modules/
 report.html
+*.pdf
 .wedge/
 *.log
 .DS_Store

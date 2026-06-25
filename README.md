@@ -18,10 +18,15 @@ consultancy or DS platform rebrands, not a single-brand SaaS.
 ## Run
 
 ```bash
-node bin/wedge.mjs                 # uses wedge.config.json
+node bin/wedge.mjs                 # uses wedge.config.json (terminal report)
 node bin/wedge.mjs --source w3c    # override token source
+node bin/wedge.mjs --pdf out.pdf   # themed handoff report as PDF
+node bin/wedge.mjs --format md     # GitHub-flavored markdown (PR comment body)
 npm run parity                     # same scan, all 4 sources -> identical findings
 ```
+
+PDF export prints the HTML report through a Chromium-family browser already on
+the machine (Chrome/Chromium/Edge/Brave, or `$WEDGE_CHROME`) — no bundled Chromium.
 
 ## TokenSource adapters
 
