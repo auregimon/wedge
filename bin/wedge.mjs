@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Wedge — design-system conformance linter. Brand-free engine, BYO token source.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -9,6 +10,8 @@ import { buildTokenModel, extractCandidates, runRules, proposeTokens, computeSta
 import { loadHistory, appendRun, sparkline } from '../src/history.mjs';
 import { renderText } from '../src/report/text.mjs';
 import { renderHtml } from '../src/report/html.mjs';
+import { renderMarkdown, MARKER } from '../src/report/markdown.mjs';
+import { detectRepo, postSticky } from '../src/post/github.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const abs = p => path.resolve(ROOT, p);
@@ -70,10 +73,27 @@ if (config.budget?.maxFindings != null) {
 }
 
 const meta = { adapter: ts.adapter, tokens: model.colors.length + model.space.length + model.type.length };
-console.log(renderText(findings, proposals, summary, brand, meta));
+
+const prNum = opt('--comment');
+const mdMode = opt('--format') === 'md' || prNum;
+const md = mdMode ? renderMarkdown(findings, proposals, summary, brand, meta) : null;
+
+if (prNum) {
+  const repo = opt('--repo') ?? detectRepo();
+  if (!repo) { console.error('  wedge: could not detect repo; pass --repo owner/name'); process.exit(2); }
+  const bodyFile = path.join(os.tmpdir(), `wedge-comment-${prNum}.md`);
+  fs.writeFileSync(bodyFile, md);
+  const res = postSticky({ repo, pr: prNum, bodyFile, marker: MARKER, dryRun: argv.includes('--dry-run') });
+  console.log(`  wedge: ${res.dryRun ? '[dry-run] would ' : ''}${res.action} sticky comment on ${repo}#${prNum}${res.url ? `\n  ${res.url}` : ''}`);
+  if (res.dryRun) console.log('\n' + md);
+} else if (mdMode) {
+  console.log(md);
+} else {
+  console.log(renderText(findings, proposals, summary, brand, meta));
+}
 
 const htmlOut = opt('--html') ?? config.htmlOut;
-if (htmlOut) {
+if (htmlOut && !mdMode) {
   fs.writeFileSync(abs(htmlOut), renderHtml(findings, proposals, summary, brand, meta));
   console.log(`  HTML report → ${htmlOut}\n`);
 }
