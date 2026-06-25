@@ -65,9 +65,12 @@ export function renderHtml(findings, brand, meta) {
   .tag-color { background:#EAF1FF; color:#1D4ED8; }
   .tag-space { background:#EEF2F0; color:#3F6152; }
   .tag-type { background:#F6EEF6; color:#8A3F7A; }
+  .tag-component { background:#FBF0E9; color:#9A5B2B; }
   .badge { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; border-radius:4px; padding:1px 6px; margin-left:4px; }
   .badge-drift { color:#A85A00; background:#FFF3E0; }
   .badge-off-scale { color:#7A4FB5; background:#F2ECFB; }
+  .badge-hand-rolled { color:#9A5B2B; background:#FBEFE4; }
+  .badge-div-as-button { color:#9A5B2B; background:#FBEFE4; }
   .pass { font-size:22px; font-weight:600; margin-top:40px; }
   footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
 </style></head>

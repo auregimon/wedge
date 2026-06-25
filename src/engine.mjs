@@ -5,7 +5,7 @@
 
 import { parseAnyColor, colorToHex } from './color.mjs';
 import { parseLengthPx } from './length.mjs';
-import { extractCandidates } from './scan/index.mjs';
+import { extractCandidates, disabledMap } from './scan/index.mjs';
 import { isSpacingProp, isFontSizeProp } from './scan/shared.mjs';
 
 export const DEFAULT_COLOR_TOLERANCE = 6;   // per-channel
@@ -115,19 +115,57 @@ const ruleTypeOffScale = offScaleRule({
   rule: 'type-off-scale', tag: 'type', scaleKey: 'type', propTest: isFontSizeProp, defaultTol: DEFAULT_TYPE_TOLERANCE,
 });
 
+// ── rule: handrolled-component (JSX structure) ──
+// Registry-driven: cfg.components declares DS components and the raw tags they
+// replace. Flags (1) a replaced tag carrying inline style — a re-rolled version,
+// and (2) a div/span with onClick when a component opts in as the interactive
+// surrogate — a button built out of a div (also an accessibility problem).
+function ruleHandrolledComponent(file, candidates, model, cfg) {
+  const registry = cfg.components || [];
+  if (!registry.length) return [];
+  const styled = new Map();
+  let surrogate = null;
+  for (const c of registry) {
+    for (const t of c.replaces || []) styled.set(t, c);
+    if (c.interactiveSurrogate && !surrogate) surrogate = c;
+  }
+  const sev = cfg.severity ?? 'advisory';
+  const make = (e, found, comp, badge) => ({
+    rule: 'handrolled-component', severity: sev, file, line: e.line,
+    tag: 'component', found, foundColor: null, rel: '→',
+    target: `<${comp.name}>`, targetColor: null, badge, fix: `from '${comp.import}'`, also: [],
+  });
+  const out = [];
+  for (const e of candidates) {
+    if (e.kind !== 'element') continue;
+    const attrs = new Set(e.attrs);
+    const comp = styled.get(e.tag);
+    if (comp && (attrs.has('style') || attrs.has('sx') || attrs.has('css'))) {
+      out.push(make(e, `<${e.tag} style>`, comp, 'hand-rolled'));
+    } else if (surrogate && attrs.has('onClick') && (e.tag === 'div' || e.tag === 'span')) {
+      out.push(make(e, `<${e.tag} onClick>`, surrogate, 'div-as-button'));
+    }
+  }
+  return out;
+}
+
 const RULES = {
   'literal-instead-of-token': ruleLiteralInsteadOfToken,
   'space-off-scale': ruleSpaceOffScale,
   'type-off-scale': ruleTypeOffScale,
+  'handrolled-component': ruleHandrolledComponent,
 };
 
 export function runFile(file, src, model, rulesCfg = {}, engine = 'auto') {
   const candidates = extractCandidates(file, src, engine);
+  const disabled = disabledMap(src);
   const findings = [];
   for (const [id, fn] of Object.entries(RULES)) {
     const cfg = rulesCfg[id];
     if (!cfg || cfg.severity === 'off') continue;
-    findings.push(...fn(file, candidates, model, cfg));
+    for (const f of fn(file, candidates, model, cfg)) {
+      if (!disabled.get(f.line)?.has(f.rule)) findings.push(f); // rule-scoped waiver
+    }
   }
   return findings.sort((a, b) => a.line - b.line || a.rule.localeCompare(b.rule));
 }

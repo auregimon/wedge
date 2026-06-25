@@ -62,6 +62,14 @@ export function astScan(src) {
   const ast = parse(src, { sourceType: 'module', plugins: ['jsx', 'typescript'], errorRecovery: true });
   const out = [];
   walk(ast.program, n => {
+    if (n.type === 'JSXOpeningElement') {
+      const nm = n.name?.type === 'JSXIdentifier' ? n.name.name : null;
+      if (nm && /^[a-z]/.test(nm)) { // raw HTML tag, not a <Component>
+        const attrs = [];
+        for (const a of n.attributes) if (a.type === 'JSXAttribute' && a.name?.name) attrs.push(a.name.name);
+        out.push({ kind: 'element', tag: nm, line: n.loc.start.line, attrs });
+      }
+    }
     if (n.type === 'JSXAttribute' && STYLE_ATTRS.has(n.name?.name) &&
         n.value?.type === 'JSXExpressionContainer' &&
         n.value.expression?.type === 'ObjectExpression') {

@@ -68,10 +68,15 @@ forces the legacy whole-file pass (kept for comparison; it over-fires in TSX).
 | `literal-instead-of-token` | a hardcoded color that is (or drifts near) a token | the token `var()` |
 | `space-off-scale` | a `padding`/`margin`/`gap` value off the spacing scale | nearest `space.*` |
 | `type-off-scale` | a `font-size` off the type scale | nearest `font.size.*` |
+| `handrolled-component` | a raw `<button>` etc. with inline style, or a `<div onClick>` surrogate, when a DS component exists | the DS `<Component>` |
 
 Scale tokens are read by path convention: `space.*` / `spacing.*` and `font.size.*`.
+`handrolled-component` is driven by a `components` registry in its rule config.
+
+Waivers are **rule-scoped**: `// wedge-disable-line space-off-scale` silences only
+that rule on that line; other rules still report.
 
 ## Status
 
-Prototype. Three rules above. Roadmap: `handrolled-component` (the deep moat —
-needs a component registry + AST), PR-comment + PDF report outputs.
+Prototype. Four rules above. Roadmap: PR-comment + PDF report outputs;
+`$type:dimension` detection; data-flow tracing for out-of-line style objects.

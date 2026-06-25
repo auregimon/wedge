@@ -19,8 +19,11 @@ export function Button() {
       {/* prose mention of #2563EB inside a comment -> must NOT fire (FP fix) */}
 
       <button style={{ color: "#2563EB" }}> {/* wedge-disable literal-instead-of-token: documented brand exception */}
-        Waived — must NOT fire.
+        Waived for color — but still a hand-rolled button (component rule fires).
       </button>
+
+      <div onClick={() => {}} role="button">Menu</div>
+      {/* div with onClick -> interactive surrogate: use <Button> (also a11y) */}
     </div>
   );
 }

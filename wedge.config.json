@@ -9,7 +9,14 @@
   "rules": {
     "literal-instead-of-token": { "severity": "advisory", "tolerance": 6 },
     "space-off-scale": { "severity": "advisory", "tolerance": 0.5 },
-    "type-off-scale": { "severity": "advisory", "tolerance": 0.5 }
+    "type-off-scale": { "severity": "advisory", "tolerance": 0.5 },
+    "handrolled-component": {
+      "severity": "advisory",
+      "components": [
+        { "name": "Button", "import": "@acme/ds", "replaces": ["button"], "interactiveSurrogate": true },
+        { "name": "Card", "import": "@acme/ds", "replaces": ["article"] }
+      ]
+    }
   },
   "scan": { "include": ["fixtures/Button.client.tsx"], "engine": "auto" },
   "brand": "brand.json",
