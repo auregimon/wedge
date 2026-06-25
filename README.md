@@ -45,7 +45,8 @@ The CLI is the wedge. The defensible business is the **data that accumulates whe
 you enforce at scale**: per-tenant drift history, cross-tenant adoption baselines,
 and a calibration corpus that lowers false-positives. None of it forks with the
 code. See **[docs/PLATFORM.md](docs/PLATFORM.md)** for the hosted architecture,
-open-core model, white-label/OEM strategy, and build phases.
+open-core model, white-label/OEM strategy, and build phases — and
+**[docs/MARKET.md](docs/MARKET.md)** for sourced market sizing (TAM/SAM/SOM).
 
 ## Quickstart
 
